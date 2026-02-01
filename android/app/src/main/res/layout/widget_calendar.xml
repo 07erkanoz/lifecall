@@ -80,7 +80,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="Bugün etkinlik yok"
+        android:text="Son 2 günde etkinlik yok"
         android:textSize="14sp"
         android:textColor="#999999"
         android:visibility="gone" />

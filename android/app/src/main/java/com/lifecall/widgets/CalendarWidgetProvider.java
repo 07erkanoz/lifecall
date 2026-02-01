@@ -70,9 +70,9 @@ public class CalendarWidgetProvider extends AppWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_calendar);
 
         // Bugünün tarihini ayarla
-        SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, EEEE", new Locale("tr"));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM, EEEE", new Locale("tr"));
         String todayDate = dateFormat.format(new Date());
-        views.setTextViewText(R.id.widget_date, todayDate);
+        views.setTextViewText(R.id.widget_date, "Bugün · " + todayDate);
 
         // Başlığa tıklayınca uygulamayı aç
         Intent openAppIntent = new Intent(context, MainActivity.class);

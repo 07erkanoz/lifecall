@@ -194,18 +194,18 @@ public class CallsWidgetProvider extends AppWidgetProvider {
                     views.setTextViewText(callViews[i][0], displayName);
                     views.setTextViewText(callViews[i][1], formatTime(timestamp));
 
-                    // Arama tipi ikonu
+                    // Arama tipi ikonu (özel vektör ikonlar)
                     int iconRes;
                     switch (type) {
                         case "incoming":
-                            iconRes = android.R.drawable.sym_call_incoming;
+                            iconRes = R.drawable.ic_call_incoming;
                             break;
                         case "missed":
-                            iconRes = android.R.drawable.sym_call_missed;
+                            iconRes = R.drawable.ic_call_missed;
                             break;
                         case "outgoing":
                         default:
-                            iconRes = android.R.drawable.sym_call_outgoing;
+                            iconRes = R.drawable.ic_call_outgoing;
                             break;
                     }
                     views.setImageViewResource(callViews[i][2], iconRes);

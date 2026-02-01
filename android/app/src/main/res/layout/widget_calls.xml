@@ -138,8 +138,7 @@
             android:id="@+id/call_1_icon"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:src="@android:drawable/sym_call_outgoing"
-            android:tint="#666666" />
+            android:src="@drawable/ic_call_outgoing" />
 
         <TextView
             android:id="@+id/call_1_name"
@@ -176,8 +175,7 @@
             android:id="@+id/call_2_icon"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:src="@android:drawable/sym_call_incoming"
-            android:tint="#666666" />
+            android:src="@drawable/ic_call_incoming" />
 
         <TextView
             android:id="@+id/call_2_name"
@@ -214,8 +212,7 @@
             android:id="@+id/call_3_icon"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:src="@android:drawable/sym_call_missed"
-            android:tint="#F44336" />
+            android:src="@drawable/ic_call_missed" />
 
         <TextView
             android:id="@+id/call_3_name"
@@ -252,8 +249,7 @@
             android:id="@+id/call_4_icon"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:src="@android:drawable/sym_call_outgoing"
-            android:tint="#666666" />
+            android:src="@drawable/ic_call_outgoing" />
 
         <TextView
             android:id="@+id/call_4_name"
