@@ -11,14 +11,16 @@
  * - Hakkında
  */
 
-import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Text, Divider } from 'react-native-paper';
+import React, { useState } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text, Divider, ActivityIndicator } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '../theme';
+import { useAuth } from '../contexts';
+import { AuthPrompt } from '../components';
 import { RootStackScreenProps } from '../navigation/types';
 
 interface SettingsItemProps {
@@ -106,11 +108,156 @@ const SettingsDivider: React.FC = () => {
   return <View style={[styles.itemDivider, { backgroundColor: theme.colors.outline + '30' }]} />;
 };
 
+// Hesap Bölümü Bileşeni
+const AccountSection: React.FC<{
+  onSignInPress: () => void;
+}> = ({ onSignInPress }) => {
+  const { theme } = useAppTheme();
+  const { user, isAuthenticated, isLoading, signOut } = useAuth();
+
+  const handleSignOut = () => {
+    Alert.alert(
+      'Çıkış Yap',
+      'Hesabınızdan çıkış yapmak istediğinize emin misiniz?',
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Çıkış Yap',
+          style: 'destructive',
+          onPress: async () => {
+            await signOut();
+          },
+        },
+      ]
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.primary }]}>
+          HESAP
+        </Text>
+        <View style={[styles.accountCard, { backgroundColor: theme.colors.surface }]}>
+          <ActivityIndicator size="small" color={theme.colors.primary} />
+        </View>
+      </View>
+    );
+  }
+
+  if (isAuthenticated && user) {
+    return (
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: theme.colors.primary }]}>
+          HESAP
+        </Text>
+        <View style={[styles.accountCard, { backgroundColor: theme.colors.surface }]}>
+          <View style={styles.accountInfo}>
+            <View style={[styles.avatarContainer, { backgroundColor: theme.colors.primary }]}>
+              <MaterialCommunityIcons name="account" size={28} color="#FFF" />
+            </View>
+            <View style={styles.accountDetails}>
+              <Text style={[styles.accountEmail, { color: theme.colors.onSurface }]}>
+                {user.email}
+              </Text>
+              <Text style={[styles.accountStatus, { color: theme.colors.primary }]}>
+                ✓ Giriş yapıldı
+              </Text>
+            </View>
+          </View>
+          <View style={styles.accountActions}>
+            <TouchableOpacity
+              style={[styles.accountButton, { borderColor: theme.colors.outline }]}
+              onPress={handleSignOut}
+            >
+              <MaterialCommunityIcons name="logout" size={18} color={theme.colors.error || '#F44336'} />
+              <Text style={[styles.accountButtonText, { color: theme.colors.error || '#F44336' }]}>
+                Çıkış Yap
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.accountBenefits}>
+            <View style={styles.benefitItem}>
+              <MaterialCommunityIcons name="check-circle" size={16} color="#4CAF50" />
+              <Text style={[styles.benefitText, { color: theme.colors.onSurfaceVariant }]}>
+                Spam bildirme aktif
+              </Text>
+            </View>
+            <View style={styles.benefitItem}>
+              <MaterialCommunityIcons name="check-circle" size={16} color="#4CAF50" />
+              <Text style={[styles.benefitText, { color: theme.colors.onSurfaceVariant }]}>
+                Bulut yedekleme aktif
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // Giriş yapılmamış
+  return (
+    <View style={styles.section}>
+      <Text style={[styles.sectionTitle, { color: theme.colors.primary }]}>
+        HESAP
+      </Text>
+      <TouchableOpacity
+        style={[styles.accountCard, { backgroundColor: theme.colors.surface }]}
+        onPress={onSignInPress}
+        activeOpacity={0.7}
+      >
+        <View style={styles.accountInfo}>
+          <View style={[styles.avatarContainer, { backgroundColor: theme.colors.surfaceVariant }]}>
+            <MaterialCommunityIcons name="account-outline" size={28} color={theme.colors.onSurfaceVariant} />
+          </View>
+          <View style={styles.accountDetails}>
+            <Text style={[styles.accountTitle, { color: theme.colors.onSurface }]}>
+              Giriş Yap
+            </Text>
+            <Text style={[styles.accountSubtitle, { color: theme.colors.onSurfaceVariant }]}>
+              Spam bildirme ve bulut yedekleme için
+            </Text>
+          </View>
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={24}
+            color={theme.colors.onSurfaceVariant}
+          />
+        </View>
+        <View style={styles.accountBenefits}>
+          <View style={styles.benefitItem}>
+            <MaterialCommunityIcons name="shield-alert-outline" size={16} color={theme.colors.primary} />
+            <Text style={[styles.benefitText, { color: theme.colors.onSurfaceVariant }]}>
+              Spam numaralarını toplulukla paylaş
+            </Text>
+          </View>
+          <View style={styles.benefitItem}>
+            <MaterialCommunityIcons name="cloud-upload-outline" size={16} color={theme.colors.primary} />
+            <Text style={[styles.benefitText, { color: theme.colors.onSurfaceVariant }]}>
+              Verilerini güvenle yedekle
+            </Text>
+          </View>
+          <View style={styles.benefitItem}>
+            <MaterialCommunityIcons name="sync-circle" size={16} color={theme.colors.primary} />
+            <Text style={[styles.benefitText, { color: theme.colors.onSurfaceVariant }]}>
+              Cihazlar arası senkronizasyon
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 const SettingsScreen: React.FC = () => {
   const { t } = useTranslation();
   const { theme, themeId } = useAppTheme();
   const navigation = useNavigation<RootStackScreenProps<'Main'>['navigation']>();
   const insets = useSafeAreaInsets();
+  const auth = useAuth();
+
+  // Auth prompt state
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   // Tema adını al
   const getThemeName = () => {
@@ -140,6 +287,9 @@ const SettingsScreen: React.FC = () => {
           {t('settings.title') || 'Ayarlar'}
         </Text>
       </View>
+
+      {/* Hesap Bölümü - En üstte */}
+      <AccountSection onSignInPress={() => setShowAuthPrompt(true)} />
 
       {/* Görünüm Bölümü */}
       <SettingsSection title="Görünüm">
@@ -263,6 +413,20 @@ const SettingsScreen: React.FC = () => {
           Made with ❤️ by Lifeos
         </Text>
       </View>
+
+      {/* Auth Prompt Modal */}
+      <AuthPrompt
+        visible={showAuthPrompt}
+        feature="cloud_backup"
+        onClose={() => setShowAuthPrompt(false)}
+        onSuccess={() => setShowAuthPrompt(false)}
+        onSkip={() => setShowAuthPrompt(false)}
+        signIn={auth.signInWithEmail}
+        signUp={auth.signUpWithEmail}
+        signInWithGoogle={auth.signInWithGoogle}
+        skip={auth.skipAuth}
+        allowSkip={true}
+      />
     </ScrollView>
   );
 };
@@ -346,6 +510,78 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
+  },
+  // Account section styles
+  accountCard: {
+    borderRadius: 16,
+    padding: 16,
+    overflow: 'hidden',
+  },
+  accountInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  accountDetails: {
+    flex: 1,
+  },
+  accountEmail: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  accountStatus: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  accountTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  accountSubtitle: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  accountActions: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.1)',
+  },
+  accountButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 6,
+  },
+  accountButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  accountBenefits: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+    gap: 8,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  benefitText: {
+    fontSize: 13,
   },
 });
 
