@@ -26,11 +26,11 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { useAppTheme, useCallTheme, AVATAR_SIZES } from '../theme';
-import { Avatar, CallBackground, AnswerButtons } from '../components';
+import { Avatar, CallBackground, AnswerButtons, SpamWarningBadge, SpamReportModal } from '../components';
 import { RootStackScreenProps } from '../navigation/types';
 import { Contact } from '../types';
 import ContactRepository from '../database/repositories/ContactRepository';
-import { defaultAppService, proximityService } from '../services';
+import { defaultAppService, proximityService, spamService, callSettingsService, SpamInfo } from '../services';
 import VoLTEModule from '../native/VoLTEModule';
 import { getCountryFromPhoneNumber } from '../data/countryCodes';
 
@@ -64,6 +64,10 @@ const IncomingCallScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isAnswering, setIsAnswering] = useState(false);
   const [isDeclining, setIsDeclining] = useState(false);
   const [isVolteCall, setIsVolteCall] = useState(false);
+
+  // Spam state
+  const [spamInfo, setSpamInfo] = useState<SpamInfo | null>(null);
+  const [showSpamReport, setShowSpamReport] = useState(false);
 
   // Ülke bilgisi
   const countryInfo = useMemo(() => {
@@ -151,14 +155,17 @@ const IncomingCallScreen: React.FC<Props> = ({ navigation, route }) => {
     // Zil sesini başlat
     proximityService.startRingtone();
 
-    // Titreşim
-    const interval = setInterval(() => {
-      Vibration.vibrate([0, 500, 200, 500]);
-    }, 2000);
+    // Titreşim (ayarlara göre)
+    let interval: NodeJS.Timeout | null = null;
+    if (callSettingsService.isVibrationEnabled()) {
+      callSettingsService.vibrateForIncomingCall();
+    }
 
     return () => {
-      clearInterval(interval);
-      Vibration.cancel();
+      if (interval) {
+        clearInterval(interval);
+      }
+      callSettingsService.stopVibration();
       // Zil sesini durdur
       proximityService.stopRingtone();
     };
@@ -198,6 +205,12 @@ const IncomingCallScreen: React.FC<Props> = ({ navigation, route }) => {
             number: phoneNumber,
           });
         }
+
+        // Spam kontrolü yap
+        const spam = await spamService.checkNumber(phoneNumber);
+        if (spam) {
+          setSpamInfo(spam);
+        }
       } catch (error) {
         console.error('Arayan bilgisi alınamadı:', error);
       }
@@ -227,12 +240,17 @@ const IncomingCallScreen: React.FC<Props> = ({ navigation, route }) => {
 
     try {
       await defaultAppService.rejectCall(callId);
-      navigation.goBack();
+      // Spam değilse ve bilinmeyen numaraysa spam bildirimi sor
+      if (!spamInfo && !callerInfo.contact) {
+        setShowSpamReport(true);
+      } else {
+        navigation.goBack();
+      }
     } catch (error) {
       console.error('Arama reddedilemedi:', error);
       setIsDeclining(false);
     }
-  }, [callId, navigation]);
+  }, [callId, navigation, spamInfo, callerInfo.contact]);
 
   // SMS ile yanıtla
   const handleQuickReply = useCallback(
@@ -365,6 +383,11 @@ const IncomingCallScreen: React.FC<Props> = ({ navigation, route }) => {
             {callerInfo.contact.company}
           </Text>
         )}
+
+        {/* Spam Uyarısı */}
+        {spamInfo && spamInfo.isSpam && (
+          <SpamWarningBadge spamInfo={spamInfo} style={styles.spamBadge} />
+        )}
       </View>
 
       {/* Cevaplama Butonları */}
@@ -424,6 +447,19 @@ const IncomingCallScreen: React.FC<Props> = ({ navigation, route }) => {
           </Button>
         </Modal>
       </Portal>
+
+      {/* Spam Bildir Modal */}
+      <SpamReportModal
+        visible={showSpamReport}
+        phoneNumber={callerInfo.number}
+        onClose={() => {
+          setShowSpamReport(false);
+          navigation.goBack();
+        }}
+        onSuccess={() => {
+          navigation.goBack();
+        }}
+      />
     </CallBackground>
   );
 };
@@ -494,6 +530,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     fontStyle: 'italic',
+  },
+  spamBadge: {
+    marginTop: 16,
+    marginHorizontal: 0,
   },
   actionsSection: {
     paddingHorizontal: 20,

@@ -15,3 +15,7 @@ export { CallBackground, AnswerButtons } from './call';
 
 // Auth
 export { default as AuthPrompt } from './AuthPrompt';
+
+// Spam
+export { default as SpamReportModal } from './SpamReportModal';
+export { default as SpamWarningBadge } from './SpamWarningBadge';

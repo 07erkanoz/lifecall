@@ -33,7 +33,7 @@ import { useAppTheme } from '../theme';
 import { Avatar } from '../components';
 import { RootStackScreenProps } from '../navigation/types';
 import callStateManager, { ActiveCall } from '../services/CallStateManager';
-import { defaultAppService, proximityService } from '../services';
+import { defaultAppService, proximityService, callSettingsService } from '../services';
 import VoLTEModule, { HdAudioEvent } from '../native/VoLTEModule';
 import { getCountryFromPhoneNumber } from '../data/countryCodes';
 
@@ -106,6 +106,12 @@ const OngoingCallScreen: React.FC<Props> = ({ navigation, route }) => {
     // Arama başladığında proximity sensor'ü başlat
     proximityService.startCallMode();
 
+    // Varsayılan hoparlör ayarını kontrol et
+    if (callSettingsService.isSpeakerphoneDefault()) {
+      setIsSpeakerOn(true);
+      proximityService.setSpeakerphoneOn(true);
+    }
+
     return () => {
       // Ekran kapandığında proximity sensor'ü durdur
       proximityService.stopCallMode();
@@ -176,6 +182,7 @@ const OngoingCallScreen: React.FC<Props> = ({ navigation, route }) => {
 
     const handleCallStateChanged = (call: ActiveCall | null) => {
       if (call) {
+        const prevState = callInfo?.state;
         setCallInfo(call);
         setIsMuted(call.isMuted);
         setIsSpeakerOn(call.isSpeakerOn);
@@ -184,6 +191,10 @@ const OngoingCallScreen: React.FC<Props> = ({ navigation, route }) => {
         // Durum kontrolü
         if (call.state === 'connected') {
           setCallStatus(t('calls.status.connected') || 'Bağlandı');
+          // Bağlandığında titret
+          if (prevState !== 'connected') {
+            callSettingsService.vibrateOnAnswer();
+          }
         } else if (call.state === 'on_hold') {
           setCallStatus(t('calls.actions.hold') || 'Beklemede');
         }
@@ -191,6 +202,8 @@ const OngoingCallScreen: React.FC<Props> = ({ navigation, route }) => {
     };
 
     const handleCallEnded = () => {
+      // Arama sonlandığında titret
+      callSettingsService.vibrateOnHangup();
       navigation.goBack();
     };
 

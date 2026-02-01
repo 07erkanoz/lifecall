@@ -17,7 +17,8 @@ import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '../../theme';
-import { proximityService } from '../../services';
+import { proximityService, spamService } from '../../services';
+import CallLogRepository from '../../database/repositories/CallLogRepository';
 
 // AsyncStorage keys
 const CALL_SETTINGS_KEY = '@lifecall_call_settings';
@@ -142,6 +143,11 @@ const SettingsCallsScreen: React.FC = () => {
         setSettings(parsed);
         // ProximityService ile senkronize et
         proximityService.setProximityEnabled(parsed.proximityScreenOff);
+        // SpamService ile senkronize et
+        spamService.setEnabled(parsed.spamProtection);
+        spamService.saveSettings({
+          showSpamWarning: parsed.spamCallNotification,
+        });
       }
     } catch (error) {
       console.error('Arama ayarları yüklenemedi:', error);
@@ -178,9 +184,14 @@ const SettingsCallsScreen: React.FC = () => {
         {
           text: 'Temizle',
           style: 'destructive',
-          onPress: () => {
-            // TODO: Arama geçmişini temizle
-            Alert.alert('Başarılı', 'Arama geçmişi temizlendi.');
+          onPress: async () => {
+            try {
+              await CallLogRepository.clearAll();
+              Alert.alert('Başarılı', 'Arama geçmişi temizlendi.');
+            } catch (error) {
+              console.error('Arama geçmişi temizlenemedi:', error);
+              Alert.alert('Hata', 'Arama geçmişi temizlenirken bir hata oluştu.');
+            }
           },
         },
       ]
@@ -321,7 +332,10 @@ const SettingsCallsScreen: React.FC = () => {
         icon="shield-check-outline"
         iconColor="#4CAF50"
         value={settings.spamProtection}
-        onToggle={(v) => updateSetting('spamProtection', v)}
+        onToggle={(v) => {
+          updateSetting('spamProtection', v);
+          spamService.setEnabled(v);
+        }}
       />
 
       <SettingsToggleItem
@@ -330,7 +344,10 @@ const SettingsCallsScreen: React.FC = () => {
         icon="phone-off-outline"
         iconColor="#FF9800"
         value={settings.blockUnknownCallers}
-        onToggle={(v) => updateSetting('blockUnknownCallers', v)}
+        onToggle={(v) => {
+          updateSetting('blockUnknownCallers', v);
+          // Native call blocking entegrasyonu gerekli
+        }}
       />
 
       <SettingsToggleItem
@@ -339,15 +356,21 @@ const SettingsCallsScreen: React.FC = () => {
         icon="eye-off-outline"
         iconColor="#9C27B0"
         value={settings.blockPrivateNumbers}
-        onToggle={(v) => updateSetting('blockPrivateNumbers', v)}
+        onToggle={(v) => {
+          updateSetting('blockPrivateNumbers', v);
+          // Native call blocking entegrasyonu gerekli
+        }}
       />
 
       <SettingsToggleItem
-        title="Spam Bildirimi"
-        description="Engellenen spam aramalarını bildir"
+        title="Spam Uyarısı Göster"
+        description="Spam aramalarında uyarı göster"
         icon="bell-outline"
         value={settings.spamCallNotification}
-        onToggle={(v) => updateSetting('spamCallNotification', v)}
+        onToggle={(v) => {
+          updateSetting('spamCallNotification', v);
+          spamService.saveSettings({ showSpamWarning: v });
+        }}
       />
 
       <Divider style={styles.divider} />

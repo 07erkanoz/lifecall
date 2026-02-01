@@ -19,3 +19,9 @@ export { default as backupService } from './BackupService';
 
 export * from './ProximityService';
 export { default as proximityService } from './ProximityService';
+
+export * from './SpamService';
+export { default as spamService } from './SpamService';
+
+export * from './CallSettingsService';
+export { default as callSettingsService } from './CallSettingsService';
