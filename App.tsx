@@ -34,6 +34,9 @@ import { CallOverlay } from './src/components';
 // Screens
 import SetupWizardScreen from './src/screens/SetupWizardScreen';
 
+// Native Modules
+import { setNavigationBarColor } from './src/native/NavigationBarModule';
+
 // Storage key
 const SETUP_COMPLETED_KEY = 'setupCompleted';
 
@@ -51,6 +54,14 @@ const AppContent: React.FC<{
   onSetupComplete: () => void;
 }> = ({ showSetupWizard, onSetupComplete }) => {
   const { theme, isDarkMode } = useAppTheme();
+
+  // Android navigation bar rengini tema ile senkronize et
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      // Navigation bar rengini tema arka planına ayarla
+      setNavigationBarColor(theme.colors.surface, !isDarkMode);
+    }
+  }, [theme.colors.surface, isDarkMode]);
 
   // Kurulum sihirbazı gösterilecekse
   if (showSetupWizard) {

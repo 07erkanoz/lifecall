@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '../../theme';
-import { proximityService, spamService } from '../../services';
+import { proximityService, spamService, callSettingsService } from '../../services';
 import CallLogRepository from '../../database/repositories/CallLogRepository';
 
 // AsyncStorage keys
@@ -159,6 +159,8 @@ const SettingsCallsScreen: React.FC = () => {
   const saveSettings = async (newSettings: CallSettings) => {
     try {
       await AsyncStorage.setItem(CALL_SETTINGS_KEY, JSON.stringify(newSettings));
+      // CallSettingsService'i yeniden yükle (diğer ekranlarda güncel ayarlar kullanılsın)
+      await callSettingsService.reloadSettings();
     } catch (error) {
       console.error('Arama ayarları kaydedilemedi:', error);
     }

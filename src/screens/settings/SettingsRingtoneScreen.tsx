@@ -21,13 +21,13 @@ import {
   Divider,
   Searchbar,
   Chip,
-  useTheme,
 } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ringtoneService, RingtoneInfo } from '../../native/RingtoneModule';
+import { useAppTheme } from '../../theme';
 
 const SELECTED_RINGTONE_KEY = '@lifecall_selected_ringtone';
 
@@ -35,7 +35,7 @@ type RingtoneCategory = 'system' | 'custom' | 'all';
 
 export const SettingsRingtoneScreen: React.FC = () => {
   const navigation = useNavigation();
-  const theme = useTheme();
+  const { theme } = useAppTheme();
   const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
