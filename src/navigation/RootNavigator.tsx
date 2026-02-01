@@ -32,6 +32,10 @@ import SettingsCalendarScreen from '../screens/settings/SettingsCalendarScreen';
 import SettingsAboutScreen from '../screens/settings/SettingsAboutScreen';
 import SettingsCallThemeScreen from '../screens/settings/SettingsCallThemeScreen';
 import SettingsRingtoneScreen from '../screens/settings/SettingsRingtoneScreen';
+import SettingsContactsScreen from '../screens/settings/SettingsContactsScreen';
+import SettingsCallsScreen from '../screens/settings/SettingsCallsScreen';
+import SettingsNotificationsScreen from '../screens/settings/SettingsNotificationsScreen';
+import SettingsPrivacyScreen from '../screens/settings/SettingsPrivacyScreen';
 import SettingsBackupScreen from '../screens/SettingsBackupScreen';
 import ThemeStoreScreen from '../screens/store/ThemeStoreScreen';
 
@@ -177,6 +181,38 @@ const RootNavigator: React.FC = () => {
         component={SettingsRingtoneScreen}
         options={{
           title: t('settings.ringtone') || 'Zil Sesi',
+        }}
+      />
+
+      <Stack.Screen
+        name="SettingsContacts"
+        component={SettingsContactsScreen}
+        options={{
+          title: t('settings.contacts.title') || 'Rehber Ayarları',
+        }}
+      />
+
+      <Stack.Screen
+        name="SettingsCalls"
+        component={SettingsCallsScreen}
+        options={{
+          title: t('settings.calls.title') || 'Arama Ayarları',
+        }}
+      />
+
+      <Stack.Screen
+        name="SettingsNotifications"
+        component={SettingsNotificationsScreen}
+        options={{
+          title: 'Bildirim Ayarları',
+        }}
+      />
+
+      <Stack.Screen
+        name="SettingsPrivacy"
+        component={SettingsPrivacyScreen}
+        options={{
+          title: 'Gizlilik',
         }}
       />
 
