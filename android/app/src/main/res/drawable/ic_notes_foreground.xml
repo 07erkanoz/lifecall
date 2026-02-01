@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Notes/Document icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,20h28l16,16v48c0,2.2 -1.8,4 -4,4H34c-2.2,0 -4,-1.8 -4,-4V24c0,-2.2 1.8,-4 4,-4z"/>
+
+    <!-- Fold corner -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M62,20v16h16z"/>
+
+    <!-- Lines -->
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M40,48h28v3h-28v-3zM40,56h28v3h-28v-3zM40,64h20v3h-20v-3z"/>
+</vector>

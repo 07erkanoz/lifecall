@@ -36,6 +36,7 @@ import SettingsContactsScreen from '../screens/settings/SettingsContactsScreen';
 import SettingsCallsScreen from '../screens/settings/SettingsCallsScreen';
 import SettingsNotificationsScreen from '../screens/settings/SettingsNotificationsScreen';
 import SettingsPrivacyScreen from '../screens/settings/SettingsPrivacyScreen';
+import SettingsLauncherScreen from '../screens/settings/SettingsLauncherScreen';
 import SettingsBackupScreen from '../screens/SettingsBackupScreen';
 import ThemeStoreScreen from '../screens/store/ThemeStoreScreen';
 
@@ -213,6 +214,14 @@ const RootNavigator: React.FC = () => {
         component={SettingsPrivacyScreen}
         options={{
           title: 'Gizlilik',
+        }}
+      />
+
+      <Stack.Screen
+        name="SettingsLauncher"
+        component={SettingsLauncherScreen}
+        options={{
+          title: 'Launcher İkonları',
         }}
       />
 

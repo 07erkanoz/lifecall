@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Contacts icon (person with plus) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,40c5.52,0 10,-4.48 10,-10s-4.48,-10 -10,-10s-10,4.48 -10,10S48.48,40 54,40zM54,45c-6.67,0 -20,3.33 -20,10v5h40v-5C74,48.33 60.67,45 54,45z"/>
+
+    <!-- Plus symbol -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M72,50v6h6v4h-6v6h-4v-6h-6v-4h6v-6z"/>
+</vector>

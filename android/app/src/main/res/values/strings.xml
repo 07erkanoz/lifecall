@@ -57,4 +57,9 @@
     <string name="widget_calendar_description">Bugünün etkinliklerini gösterir</string>
     <string name="widget_calls_name">LifeCall Aramalar</string>
     <string name="widget_calls_description">Favoriler ve son aramaları gösterir</string>
+
+    <!-- Launcher Shortcuts -->
+    <string name="shortcut_contacts">Rehber</string>
+    <string name="shortcut_calendar">Takvim</string>
+    <string name="shortcut_notes">Notlar</string>
 </resources>

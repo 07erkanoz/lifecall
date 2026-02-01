@@ -53,6 +53,9 @@ public class LifeCallPackage implements ReactPackage {
         // Arama etkileşim modülü (ses düğmesi, çevirme vb.)
         modules.add(new CallInteractionModule(reactContext));
 
+        // Launcher ikon modülü (ek uygulama ikonları)
+        modules.add(new LauncherIconModule(reactContext));
+
         return modules;
     }
 

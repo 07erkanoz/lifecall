@@ -12,7 +12,7 @@
  * Ekranlar arasında kaydırarak geçiş yapılabilir
  */
 
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import {
   Platform,
   StyleSheet,
@@ -21,6 +21,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import { getPendingTargetTab, LauncherIconType } from '../native/LauncherIconModule';
 import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Text } from 'react-native-paper';
@@ -229,11 +230,46 @@ const SwipeIndicator: React.FC<SwipeIndicatorProps> = ({ currentIndex, totalTabs
   );
 };
 
+// Tab key'den index'e dönüşüm
+const getTabIndexByKey = (key: LauncherIconType): number => {
+  switch (key) {
+    case 'contacts':
+      return 2; // Kişiler
+    case 'calendar':
+      return 3; // Takvim
+    case 'notes':
+      return 4; // Notlar
+    default:
+      return 0;
+  }
+};
+
 // Main Tab Navigator
 const MainTabNavigator: React.FC = () => {
   const { theme } = useAppTheme();
   const pagerRef = useRef<PagerView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Launcher kısayolundan başlatıldıysa ilgili sekmeye git
+  useEffect(() => {
+    const checkLauncherShortcut = async () => {
+      try {
+        const targetTab = await getPendingTargetTab();
+        if (targetTab) {
+          const tabIndex = getTabIndexByKey(targetTab);
+          // Biraz gecikme ile sekmeye git (UI hazır olsun)
+          setTimeout(() => {
+            pagerRef.current?.setPage(tabIndex);
+            setCurrentIndex(tabIndex);
+          }, 100);
+        }
+      } catch (error) {
+        console.warn('Launcher shortcut check failed:', error);
+      }
+    };
+
+    checkLauncherShortcut();
+  }, []);
 
   const handlePageSelected = useCallback((event: PagerViewOnPageSelectedEvent) => {
     setCurrentIndex(event.nativeEvent.position);

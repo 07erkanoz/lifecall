@@ -161,6 +161,65 @@
             </intent-filter>
         </activity>
 
+        <!-- ========================================== -->
+        <!-- LAUNCHER KISA YOLLARI - Activity Aliases   -->
+        <!-- Kullanıcı isterse ayrı ikonlar ekleyebilir -->
+        <!-- ========================================== -->
+
+        <!-- Rehber İkonu - Doğrudan rehber sekmesini açar -->
+        <activity-alias
+            android:name=".ContactsAlias"
+            android:targetActivity=".MainActivity"
+            android:label="@string/shortcut_contacts"
+            android:icon="@mipmap/ic_contacts"
+            android:roundIcon="@mipmap/ic_contacts_round"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="lifecall.target_tab"
+                android:value="contacts" />
+        </activity-alias>
+
+        <!-- Takvim İkonu - Doğrudan takvim sekmesini açar -->
+        <activity-alias
+            android:name=".CalendarAlias"
+            android:targetActivity=".MainActivity"
+            android:label="@string/shortcut_calendar"
+            android:icon="@mipmap/ic_calendar"
+            android:roundIcon="@mipmap/ic_calendar_round"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="lifecall.target_tab"
+                android:value="calendar" />
+        </activity-alias>
+
+        <!-- Notlar İkonu - Doğrudan notlar sekmesini açar -->
+        <activity-alias
+            android:name=".NotesAlias"
+            android:targetActivity=".MainActivity"
+            android:label="@string/shortcut_notes"
+            android:icon="@mipmap/ic_notes"
+            android:roundIcon="@mipmap/ic_notes_round"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="lifecall.target_tab"
+                android:value="notes" />
+        </activity-alias>
+
         <!-- Gelen Arama Full-Screen Activity -->
         <activity
             android:name=".IncomingCallActivity"

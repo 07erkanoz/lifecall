@@ -308,6 +308,14 @@ const SettingsScreen: React.FC = () => {
           iconColor="#9C27B0"
           onPress={() => navigation.navigate('SettingsLanguage')}
         />
+        <SettingsDivider />
+        <SettingsItem
+          title="Launcher İkonları"
+          description="Ek uygulama ikonları (Android)"
+          icon="apps"
+          iconColor="#009688"
+          onPress={() => navigation.navigate('SettingsLauncher')}
+        />
       </SettingsSection>
 
       {/* Kişiler Bölümü */}
