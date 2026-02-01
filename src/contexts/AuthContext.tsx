@@ -18,8 +18,33 @@ import React, {
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import Config from 'react-native-config';
 import { getSupabaseClient, isSupabaseConfigured } from '../config/supabase';
 import type { User, Session } from '@supabase/supabase-js';
+
+// Google Sign-In yapılandırması
+const configureGoogleSignIn = () => {
+  const webClientId = Config.GOOGLE_WEB_CLIENT_ID;
+  if (webClientId) {
+    GoogleSignin.configure({
+      webClientId,
+      offlineAccess: true,
+      scopes: ['profile', 'email'],
+    });
+    return true;
+  }
+  console.warn('Google Web Client ID yapılandırılmamış. .env dosyasını kontrol edin.');
+  return false;
+};
+
+// Uygulama başladığında Google Sign-In yapılandır
+let isGoogleConfigured = false;
+try {
+  isGoogleConfigured = configureGoogleSignIn();
+} catch (error) {
+  console.warn('Google Sign-In yapılandırma hatası:', error);
+}
 
 // Storage keys
 const AUTH_USER_KEY = '@lifecall_auth_user';
@@ -225,16 +250,79 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { success: false, error: 'Supabase yapılandırılmamış' };
     }
 
-    // TODO: Google Sign-In entegrasyonu
-    // @react-native-google-signin/google-signin kullanılacak
-    return { success: false, error: 'Google girişi henüz yapılandırılmamış' };
+    if (!isGoogleConfigured) {
+      return { success: false, error: 'Google Sign-In yapılandırılmamış' };
+    }
+
+    setStatus('loading');
+
+    try {
+      // Google Play Services kontrolü
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+      // Google ile giriş yap
+      const signInResult = await GoogleSignin.signIn();
+
+      if (!signInResult.data?.idToken) {
+        setStatus('unauthenticated');
+        return { success: false, error: 'Google ID token alınamadı' };
+      }
+
+      // Supabase'e Google token ile giriş yap
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: signInResult.data.idToken,
+      });
+
+      if (error) {
+        setStatus('unauthenticated');
+        return { success: false, error: error.message };
+      }
+
+      if (data.user && data.session) {
+        setUser(data.user);
+        setSession(data.session);
+        setStatus('authenticated');
+        setHasSkipped(false);
+        await AsyncStorage.removeItem(AUTH_SKIPPED_KEY);
+        return { success: true, user: data.user };
+      }
+
+      setStatus('unauthenticated');
+      return { success: false, error: 'Google girişi başarısız' };
+    } catch (error: any) {
+      setStatus('unauthenticated');
+
+      // Google Sign-In hata kodları
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        return { success: false, error: 'Giriş iptal edildi' };
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        return { success: false, error: 'Giriş işlemi devam ediyor' };
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        return { success: false, error: 'Google Play Services mevcut değil' };
+      }
+
+      return { success: false, error: error.message || 'Google girişi başarısız' };
+    }
   }, [supabase]);
 
   // Çıkış yap
   const signOut = useCallback(async () => {
+    // Supabase'den çıkış yap
     if (supabase) {
       await supabase.auth.signOut();
     }
+
+    // Google'dan da çıkış yap (eğer Google ile giriş yapılmışsa)
+    try {
+      const isSignedIn = await GoogleSignin.isSignedIn();
+      if (isSignedIn) {
+        await GoogleSignin.signOut();
+      }
+    } catch (error) {
+      console.warn('Google Sign-Out hatası:', error);
+    }
+
     setUser(null);
     setSession(null);
     setStatus('unauthenticated');
