@@ -12,3 +12,6 @@ export { default as CallOverlay } from './CallOverlay';
 
 // Call screen themed components
 export { CallBackground, AnswerButtons } from './call';
+
+// Auth
+export { default as AuthPrompt } from './AuthPrompt';

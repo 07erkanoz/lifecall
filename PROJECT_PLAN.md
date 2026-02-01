@@ -584,13 +584,34 @@ interface CalendarSettings {
   - [x] Son aramalar listesi
   - [x] Kişiye özel zil sesi ayarlama
 
-### 8.5 Diğer Ayarlar
-- [ ] SettingsContactsScreen
-- [ ] SettingsCallsScreen
-- [ ] SettingsCalendarScreen (Faz 6.7'de detaylı)
-- [ ] SettingsNotificationsScreen
-- [ ] SettingsPrivacyScreen
-- [ ] SettingsBackupScreen
+### 8.5 Diğer Ayarlar ✅
+- [x] SettingsContactsScreen - Rehber ayarları
+  - [x] Hesap seçimi (Google, Samsung, Telefon vb.)
+  - [x] Varsayılan hesap belirleme
+  - [x] Sıralama (Ad/Soyad'a göre)
+  - [x] Görüntüleme formatı (Ad Soyad / Soyad Ad)
+  - [x] Telefon/SIM kişileri filtreleri
+- [x] SettingsCallsScreen - Arama ayarları
+  - [x] Arama geçmişi saklama süresi
+  - [x] Cevapsız arama rozeti
+  - [x] Spam koruması ve bilinmeyen numara engelleme
+  - [x] Titreşim ayarları (gelen/cevaplanan/kapanan)
+  - [x] Cevaplama yöntemleri (düğme, kaydırma, yakınlık sensörü)
+  - [x] Tuş sesleri ve titreşimi
+- [x] SettingsCalendarScreen (Faz 6.7'de detaylı)
+- [x] SettingsNotificationsScreen - Bildirim ayarları
+  - [x] Genel bildirim ayarları (ses, titreşim, LED)
+  - [x] Arama bildirimleri (gelen, cevapsız, tam ekran)
+  - [x] Kişi bildirimleri (doğum günü, özel gün hatırlatıcı)
+  - [x] Rahatsız etme modu (sessiz saatler, favori istisnası)
+  - [x] Zil sesi ve bildirim sesi seçimi
+- [x] SettingsPrivacyScreen - Gizlilik ayarları
+  - [x] Uygulama kilidi (PIN/Biyometrik)
+  - [x] Veri gizliliği (arama içeriği, bildirim içeriği gizleme)
+  - [x] Arama gizliliği (geçmiş gizleme, gizli arama modu)
+  - [x] Ekran görüntüsü koruması
+  - [x] Analitik ve çökme raporu paylaşımı
+- [ ] SettingsBackupScreen (Auth sistemi ile entegre edilecek)
 
 ---
 
@@ -612,6 +633,69 @@ interface CalendarSettings {
 - [ ] Bulut senkronizasyonu
 
 ### 9.4 Widget'lar ✅
+
+---
+
+## Faz 10: Lazy Authentication Sistemi ✅ TAMAMLANDI
+
+### 10.1 Mimari Karar
+Telefon/rehber uygulaması için zorunlu login YANLIŞ yaklaşımdır:
+- Her açılışta auth kontrolü = 200-500ms+ gecikme
+- Ağ bağlantısı gerekliliği = Offline çalışmaz
+- Token yenileme = Ek gecikme
+
+**Doğru Yaklaşım: Lazy Authentication**
+- Uygulama başlangıcında auth kontrolü YOK (sıfır gecikme)
+- Auth sadece gerektiğinde istenir
+- Offline-first yaklaşım
+- Opsiyonel hesap
+
+### 10.2 Auth Gerektiren Özellikler
+| Özellik | Auth Gerekli mi? |
+|---------|------------------|
+| Rehber, Arama, Takvim, Notlar | ❌ Hayır |
+| Tema değiştirme, Ayarlar | ❌ Hayır |
+| **Spam Bildirme** | ✅ Evet |
+| **Bulut Yedekleme** | ✅ Evet |
+| **Cihazlar Arası Sync** | ✅ Evet |
+
+### 10.3 Implementasyon ✅
+- [x] AuthContext.tsx - Lazy authentication context
+  - [x] useAuth hook - Auth durumu ve işlemleri
+  - [x] useOptionalAuth hook - Lazy auth kontrolü
+  - [x] AuthFeature tipi (spam_report, cloud_backup, cross_device_sync)
+  - [x] Başlangıçta auth kontrolü YOK
+  - [x] Skip (atla) özelliği
+- [x] AuthPrompt.tsx - Auth gerektiren özellikler için modal
+  - [x] Özelliğe göre ikon ve açıklama
+  - [x] Email/şifre ile giriş/kayıt
+  - [x] Google ile giriş (yapılandırılacak)
+  - [x] "Şimdilik Atla" seçeneği
+- [x] App.tsx - AuthProvider entegrasyonu
+- [x] Supabase config - Opsiyonel (yapılandırılmamışsa uygulama çalışmaya devam eder)
+
+### 10.4 Kullanım Örneği
+```typescript
+// Spam bildirme ekranında
+function SpamReportScreen() {
+  const { showPrompt, checkAndProceed, isAuthenticated } = useOptionalAuth('spam_report');
+
+  const handleReport = async () => {
+    const canProceed = await checkAndProceed();
+    if (canProceed) {
+      // Spam bildir
+    }
+  };
+
+  return (
+    <>
+      <Button onPress={handleReport}>Spam Bildir</Button>
+      <AuthPrompt visible={showPrompt} feature="spam_report" ... />
+    </>
+  );
+}
+```
+
 - [x] CalendarWidgetProvider - Takvim widget'ı
 - [x] CallsWidgetProvider - Aramalar widget'ı
   - [x] Son aramalar listesi
@@ -647,6 +731,7 @@ CallHub/
 │   │   ├── CallOverlay.tsx
 │   │   ├── FloatingCallBubble.tsx
 │   │   ├── FloatingCallNotification.tsx
+│   │   ├── AuthPrompt.tsx               (Faz 10)
 │   │   ├── calendar/                    (Faz 6)
 │   │   │   ├── CalendarView.tsx
 │   │   │   ├── DayView.tsx
@@ -658,6 +743,9 @@ CallHub/
 │   │   │   ├── ReminderPicker.tsx
 │   │   │   ├── RecurrencePicker.tsx
 │   │   │   └── index.ts
+│   │   └── index.ts
+│   ├── contexts/                        (Faz 10)
+│   │   ├── AuthContext.tsx
 │   │   └── index.ts
 │   ├── i18n/
 │   │   ├── locales/
@@ -694,7 +782,11 @@ CallHub/
 │   │   ├── settings/
 │   │   │   ├── SettingsAppearanceScreen.tsx
 │   │   │   ├── SettingsLanguageScreen.tsx
-│   │   │   └── SettingsCalendarScreen.tsx (Faz 6)
+│   │   │   ├── SettingsCalendarScreen.tsx  (Faz 6)
+│   │   │   ├── SettingsContactsScreen.tsx  (Faz 8)
+│   │   │   ├── SettingsCallsScreen.tsx     (Faz 8)
+│   │   │   ├── SettingsNotificationsScreen.tsx (Faz 8)
+│   │   │   └── SettingsPrivacyScreen.tsx   (Faz 8)
 │   │   └── store/
 │   │       └── ThemeStoreScreen.tsx
 │   ├── services/
@@ -733,7 +825,7 @@ CallHub/
 ---
 
 ## Son Güncelleme
-**Tarih:** 2026-01-31
+**Tarih:** 2026-02-01
 
 **Tamamlanan Son İşler:**
 1. Çağrı ekranları ve floating UI sistemi
@@ -812,19 +904,32 @@ CallHub/
     - CallsScreen uzun basma menüsü (engelle, detay, kopyala, ekle)
     - ContactDetailScreen arama geçmişi ve istatistikleri
     - i18n çevirileri (calls.stats, calls.menu, ringtone)
+18. **Kapsamlı Ayarlar Ekranları (2026-02-01)**
+    - SettingsContactsScreen (hesap seçimi, sıralama, görüntüleme)
+    - SettingsCallsScreen (geçmiş, spam koruması, titreşim, cevaplama)
+    - SettingsNotificationsScreen (bildirimler, rahatsız etme modu)
+    - SettingsPrivacyScreen (uygulama kilidi, veri gizliliği)
+    - SettingsScreen yeniden düzenlendi (modern kart tasarımı)
+19. **Lazy Authentication Sistemi (Faz 10)**
+    - AuthContext.tsx (lazy auth context)
+    - useAuth ve useOptionalAuth hooks
+    - AuthPrompt.tsx (auth gerektiren özellikler için modal)
+    - Uygulama başlangıcında auth kontrolü YOK
+    - Opsiyonel hesap - spam/backup için gerektiğinde sor
 
 **Aktif Geliştirme:**
 - Faz 6: Takvim Modülü ✅ BÜYÜK ÖLÇÜDE TAMAMLANDI
 - Faz 7: Notlar Modülü ✅ BÜYÜK ÖLÇÜDE TAMAMLANDI
-- Faz 8: Ayarlar ve Mağaza ✅ BÜYÜK ÖLÇÜDE TAMAMLANDI
+- Faz 8: Ayarlar ve Mağaza ✅ TAMAMLANDI
 - Faz 9: Widget'lar ✅ TAMAMLANDI
+- Faz 10: Lazy Authentication ✅ TAMAMLANDI
 
 **Sonraki Adımlar:**
 1. Konum seçici (harita entegrasyonu)
 2. Excel import/export
 3. Not şablonları
 4. Arama kaydı özelliği
-5. Yedekleme sistemi
+5. SettingsBackupScreen (Auth ile entegre yedekleme)
 6. Diğer diller için çeviriler (de, fr, es, ru, ar)
 
 ---

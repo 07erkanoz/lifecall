@@ -18,6 +18,9 @@ import { store, persistor } from './src/store';
 // Theme
 import { ThemeProvider, useAppTheme, CallThemeProvider } from './src/theme';
 
+// Auth
+import { AuthProvider } from './src/contexts';
+
 // i18n
 import { initI18n } from './src/i18n';
 
@@ -139,14 +142,16 @@ function App(): React.JSX.Element {
         <Provider store={store}>
           <PersistGate loading={<LoadingScreen />} persistor={persistor}>
             <ThemeProvider>
-              <CallThemeProvider>
-                <NavigationContainer>
-                  <AppContent
-                    showSetupWizard={showSetupWizard}
-                    onSetupComplete={handleSetupComplete}
-                  />
-                </NavigationContainer>
-              </CallThemeProvider>
+              <AuthProvider>
+                <CallThemeProvider>
+                  <NavigationContainer>
+                    <AppContent
+                      showSetupWizard={showSetupWizard}
+                      onSetupComplete={handleSetupComplete}
+                    />
+                  </NavigationContainer>
+                </CallThemeProvider>
+              </AuthProvider>
             </ThemeProvider>
           </PersistGate>
         </Provider>
