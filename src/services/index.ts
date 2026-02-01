@@ -1,0 +1,27 @@
+/**
+ * LifeCall - Services Export
+ */
+
+export * from './permissions';
+export { default as permissionsService } from './permissions';
+
+export * from './contactsService';
+export { default as contactsService } from './contactsService';
+
+export * from './defaultAppService';
+export { default as defaultAppService } from './defaultAppService';
+
+export * from './CallStateManager';
+export { default as callStateManager } from './CallStateManager';
+
+export * from './BackupService';
+export { default as backupService } from './BackupService';
+
+export * from './ProximityService';
+export { default as proximityService } from './ProximityService';
+
+export * from './SpamService';
+export { default as spamService } from './SpamService';
+
+export * from './CallSettingsService';
+export { default as callSettingsService } from './CallSettingsService';

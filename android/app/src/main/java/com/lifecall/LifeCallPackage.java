@@ -1,0 +1,67 @@
+package com.lifecall;
+
+import androidx.annotation.NonNull;
+
+import com.facebook.react.ReactPackage;
+import com.facebook.react.bridge.NativeModule;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.uimanager.ViewManager;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * LifeCall - React Native Paket Kaydı
+ *
+ * Native modülleri React Native'e kaydeder.
+ */
+public class LifeCallPackage implements ReactPackage {
+
+    @NonNull
+    @Override
+    public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
+        List<NativeModule> modules = new ArrayList<>();
+
+        // Varsayılan uygulama modülü
+        modules.add(new DefaultAppModule(reactContext));
+
+        // İzin modülü
+        modules.add(new PermissionsModule(reactContext));
+
+        // Çağrı modülü
+        modules.add(new CallModule(reactContext));
+
+        // VoLTE/HD Voice modülü
+        modules.add(new VoLTEModule(reactContext));
+
+        // Engelleme modülü
+        modules.add(new BlockingModule(reactContext));
+
+        // Takvim bildirim modülü
+        modules.add(new CalendarNotificationModule(reactContext));
+
+        // Widget modülü
+        modules.add(new WidgetModule(reactContext));
+
+        // Zil sesi modülü
+        modules.add(new RingtoneModule(reactContext));
+
+        // Navigation bar modülü
+        modules.add(new NavigationBarModule(reactContext));
+
+        // Arama etkileşim modülü (ses düğmesi, çevirme vb.)
+        modules.add(new CallInteractionModule(reactContext));
+
+        // Launcher ikon modülü (ek uygulama ikonları)
+        modules.add(new LauncherIconModule(reactContext));
+
+        return modules;
+    }
+
+    @NonNull
+    @Override
+    public List<ViewManager> createViewManagers(@NonNull ReactApplicationContext reactContext) {
+        return Collections.emptyList();
+    }
+}
