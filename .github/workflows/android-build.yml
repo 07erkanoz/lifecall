@@ -32,16 +32,14 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: CallHub/package-lock.json
+          cache-dependency-path: package-lock.json
 
       # 4. Bağımlılıkları yükle
       - name: Install dependencies
-        working-directory: ./CallHub
         run: npm ci
 
       # 5. .env dosyasını GitHub Secrets'tan oluştur
       - name: Create .env file
-        working-directory: ./CallHub
         run: |
           cat << EOF > .env
           SUPABASE_URL=${{ secrets.SUPABASE_URL }}
@@ -63,7 +61,7 @@ jobs:
 
       # 7. Debug APK oluştur (imzasız, test için)
       - name: Build Debug APK
-        working-directory: ./CallHub/android
+        working-directory: ./android
         run: ./gradlew assembleDebug
 
       # 8. Debug APK'yı artifact olarak yükle
@@ -71,18 +69,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: CallHub/android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
 
       # 9. Release APK oluştur (imzalı, sadece main branch için)
       - name: Decode Keystore
         if: github.ref == 'refs/heads/main'
-        working-directory: ./CallHub/android
+        working-directory: ./android
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/lifecall-release.keystore
 
       - name: Build Release APK
         if: github.ref == 'refs/heads/main'
-        working-directory: ./CallHub/android
+        working-directory: ./android
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -94,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: CallHub/android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
 
       # 10. Build sonucunu bildir
       - name: Build Summary
