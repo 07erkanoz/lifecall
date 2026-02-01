@@ -50,6 +50,9 @@ public class LifeCallPackage implements ReactPackage {
         // Navigation bar modülü
         modules.add(new NavigationBarModule(reactContext));
 
+        // Arama etkileşim modülü (ses düğmesi, çevirme vb.)
+        modules.add(new CallInteractionModule(reactContext));
+
         return modules;
     }
 

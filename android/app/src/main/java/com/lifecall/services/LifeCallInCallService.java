@@ -9,6 +9,7 @@ import android.util.Log;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.lifecall.CallModule;
+import com.lifecall.utils.CallSettingsHelper;
 
 /**
  * LifeCall - InCallService
@@ -18,6 +19,10 @@ import com.lifecall.CallModule;
  *
  * HD Voice tespiti bu servis üzerinden yapılır:
  * Call.Details.PROPERTY_HIGH_DEF_AUDIO
+ *
+ * Otomatik engelleme özellikleri:
+ * - Bilinmeyen arayanları engelle
+ * - Gizli numaraları engelle
  */
 public class LifeCallInCallService extends InCallService {
 
@@ -27,14 +32,19 @@ public class LifeCallInCallService extends InCallService {
     private static Call activeCall;
     private static LifeCallInCallService instance;
 
+    // Ayarlar yardımcısı
+    private CallSettingsHelper settingsHelper;
+
     // Event isimleri
     public static final String EVENT_CALL_STATE_CHANGED = "onCallStateChanged";
     public static final String EVENT_HD_AUDIO_CHANGED = "onHdAudioChanged";
+    public static final String EVENT_CALL_BLOCKED = "onCallBlocked";
 
     @Override
     public void onCreate() {
         super.onCreate();
         instance = this;
+        settingsHelper = new CallSettingsHelper(this);
         Log.d(TAG, "LifeCallInCallService created");
     }
 
@@ -54,6 +64,32 @@ public class LifeCallInCallService extends InCallService {
         super.onCallAdded(call);
         Log.d(TAG, "Call added: " + call);
 
+        // Gelen arama mı kontrol et
+        int callState = call.getState();
+        boolean isIncoming = (callState == Call.STATE_RINGING);
+
+        // Gelen arama ise engelleme kontrolü yap
+        if (isIncoming) {
+            // Ayarları yeniden yükle (değişmiş olabilir)
+            settingsHelper.loadSettings();
+
+            String phoneNumber = getPhoneNumber(call);
+
+            // Engellenmeli mi kontrol et
+            if (settingsHelper.shouldBlockCall(phoneNumber)) {
+                Log.d(TAG, "Blocking call from: " + phoneNumber);
+
+                // Aramayı reddet
+                call.reject(false, null);
+
+                // React Native'e bildir
+                sendBlockedCallEvent(phoneNumber,
+                    settingsHelper.isPrivateNumber(phoneNumber) ? "private" : "unknown");
+
+                return; // Callback eklemeye gerek yok, çağrı reddedildi
+            }
+        }
+
         activeCall = call;
 
         // Callback ekle
@@ -62,6 +98,18 @@ public class LifeCallInCallService extends InCallService {
         // İlk durumu gönder
         sendCallState(call);
         sendHdAudioState(call);
+    }
+
+    /**
+     * Engellenen arama bilgisini React Native'e gönder
+     */
+    private void sendBlockedCallEvent(String phoneNumber, String reason) {
+        WritableMap params = Arguments.createMap();
+        params.putString("phoneNumber", phoneNumber);
+        params.putString("reason", reason);
+        params.putDouble("timestamp", System.currentTimeMillis());
+
+        CallModule.sendEvent(EVENT_CALL_BLOCKED, params);
     }
 
     /**

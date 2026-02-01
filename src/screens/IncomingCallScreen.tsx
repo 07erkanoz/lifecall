@@ -33,6 +33,7 @@ import ContactRepository from '../database/repositories/ContactRepository';
 import { defaultAppService, proximityService, spamService, callSettingsService, SpamInfo } from '../services';
 import VoLTEModule from '../native/VoLTEModule';
 import { getCountryFromPhoneNumber } from '../data/countryCodes';
+import CallInteractionModule from '../native/CallInteractionModule';
 
 // Hızlı SMS yanıtları
 const QUICK_REPLIES = [
@@ -183,6 +184,37 @@ const IncomingCallScreen: React.FC<Props> = ({ navigation, route }) => {
     };
     checkVoLTE();
   }, []);
+
+  // Arama etkileşim dinleyicileri (ses düğmesi, çevirme, yakınlık)
+  useEffect(() => {
+    // Dinlemeyi başlat
+    CallInteractionModule.startListeningForIncomingCall();
+
+    // Event listener'lar
+    const flipListener = CallInteractionModule.addCallInteractionListener(
+      'onPhoneFlipped',
+      () => {
+        console.log('Telefon çevrilerek arama reddedildi');
+        // handleDecline zaten çağrılıyor native tarafta
+      }
+    );
+
+    const proximityListener = CallInteractionModule.addCallInteractionListener(
+      'onProximityAnswer',
+      () => {
+        console.log('Yakınlık sensörü ile arama cevaplandı');
+        // Arama cevaplandığında ekranı değiştir
+        navigation.replace('OngoingCall', { callId });
+      }
+    );
+
+    return () => {
+      // Dinlemeyi durdur
+      CallInteractionModule.stopListening();
+      flipListener();
+      proximityListener();
+    };
+  }, [callId, navigation]);
 
   // Arayan bilgisini al
   useEffect(() => {
