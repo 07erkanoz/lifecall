@@ -1,23 +1,34 @@
 /**
  * LifeCall - Ana Tab Navigator
  *
- * 5 ana sekme:
+ * Swipe destekli 6 ana sekme:
  * - Favoriler
  * - Aramalar
  * - Kişiler
  * - Takvim
+ * - Notlar
  * - Ayarlar
+ *
+ * Ekranlar arasında kaydırarak geçiş yapılabilir
  */
 
-import React from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React, { useRef, useCallback, useState } from 'react';
+import {
+  Platform,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+} from 'react-native';
+import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '../theme';
-import { MainTabParamList } from './types';
 
-// Placeholder ekranlar (gerçek ekranlar daha sonra oluşturulacak)
+// Ekranlar
 import FavoritesScreen from '../screens/FavoritesScreen';
 import CallsScreen from '../screens/CallsScreen';
 import ContactsScreen from '../screens/ContactsScreen';
@@ -25,159 +36,294 @@ import CalendarScreen from '../screens/CalendarScreen';
 import NotesScreen from '../screens/NotesScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Tab bar icon bileşeni
-interface TabBarIconProps {
-  focused: boolean;
-  color: string;
-  size: number;
-  name: string;
-  focusedName?: string;
+// Tab tanımları
+interface TabConfig {
+  key: string;
+  labelKey: string;
+  icon: string;
+  focusedIcon: string;
+  component: React.FC;
 }
 
-const TabBarIcon: React.FC<TabBarIconProps> = ({
-  focused,
-  color,
-  size,
-  name,
-  focusedName,
-}) => {
-  const iconName = focused ? focusedName || name : `${name}-outline`;
-  return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
-};
+const TABS: TabConfig[] = [
+  {
+    key: 'favorites',
+    labelKey: 'tabs.favorites',
+    icon: 'star-outline',
+    focusedIcon: 'star',
+    component: FavoritesScreen,
+  },
+  {
+    key: 'calls',
+    labelKey: 'tabs.calls',
+    icon: 'phone-outline',
+    focusedIcon: 'phone',
+    component: CallsScreen,
+  },
+  {
+    key: 'contacts',
+    labelKey: 'tabs.contacts',
+    icon: 'account-group-outline',
+    focusedIcon: 'account-group',
+    component: ContactsScreen,
+  },
+  {
+    key: 'calendar',
+    labelKey: 'tabs.calendar',
+    icon: 'calendar-outline',
+    focusedIcon: 'calendar',
+    component: CalendarScreen,
+  },
+  {
+    key: 'notes',
+    labelKey: 'tabs.notes',
+    icon: 'note-text-outline',
+    focusedIcon: 'note-text',
+    component: NotesScreen,
+  },
+  {
+    key: 'settings',
+    labelKey: 'tabs.settings',
+    icon: 'cog-outline',
+    focusedIcon: 'cog',
+    component: SettingsScreen,
+  },
+];
 
-const MainTabNavigator: React.FC = () => {
-  const { t } = useTranslation();
-  const { theme, isDarkMode } = useAppTheme();
+// Tab Bar Item
+interface TabBarItemProps {
+  tab: TabConfig;
+  index: number;
+  isActive: boolean;
+  onPress: () => void;
+  activeColor: string;
+  inactiveColor: string;
+  label: string;
+}
+
+const TabBarItem: React.FC<TabBarItemProps> = ({
+  tab,
+  index,
+  isActive,
+  onPress,
+  activeColor,
+  inactiveColor,
+  label,
+}) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.9,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      useNativeDriver: true,
+    }).start();
+  };
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: theme.colors.tabBarActive,
-        tabBarInactiveTintColor: theme.colors.tabBarInactive,
-        tabBarStyle: {
-          backgroundColor: theme.colors.tabBar,
-          borderTopColor: theme.colors.divider,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 8,
-          paddingTop: 8,
-          height: Platform.OS === 'ios' ? 85 : 65,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '500',
-          marginTop: 2,
-        },
-        tabBarIconStyle: {
-          marginTop: 4,
-        },
-      }}
+    <TouchableOpacity
+      style={styles.tabItem}
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      activeOpacity={0.7}
     >
-      <Tab.Screen
-        name="Favorites"
-        component={FavoritesScreen}
-        options={{
-          tabBarLabel: t('tabs.favorites'),
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabBarIcon
-              focused={focused}
-              color={color}
-              size={size}
-              name="star"
-              focusedName="star"
-            />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Calls"
-        component={CallsScreen}
-        options={{
-          tabBarLabel: t('tabs.calls'),
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabBarIcon
-              focused={focused}
-              color={color}
-              size={size}
-              name="phone"
-              focusedName="phone"
-            />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Contacts"
-        component={ContactsScreen}
-        options={{
-          tabBarLabel: t('tabs.contacts'),
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabBarIcon
-              focused={focused}
-              color={color}
-              size={size}
-              name="account-group"
-              focusedName="account-group"
-            />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Calendar"
-        component={CalendarScreen}
-        options={{
-          tabBarLabel: t('tabs.calendar'),
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabBarIcon
-              focused={focused}
-              color={color}
-              size={size}
-              name="calendar"
-              focusedName="calendar"
-            />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Notes"
-        component={NotesScreen}
-        options={{
-          tabBarLabel: t('tabs.notes'),
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabBarIcon
-              focused={focused}
-              color={color}
-              size={size}
-              name="note-text"
-              focusedName="note-text"
-            />
-          ),
-        }}
-      />
-
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          tabBarLabel: t('tabs.settings'),
-          tabBarIcon: ({ focused, color, size }) => (
-            <TabBarIcon
-              focused={focused}
-              color={color}
-              size={size}
-              name="cog"
-              focusedName="cog"
-            />
-          ),
-        }}
-      />
-    </Tab.Navigator>
+      <Animated.View style={[styles.tabItemInner, { transform: [{ scale: scaleAnim }] }]}>
+        <MaterialCommunityIcons
+          name={isActive ? tab.focusedIcon : tab.icon}
+          size={24}
+          color={isActive ? activeColor : inactiveColor}
+        />
+        <Text
+          style={[
+            styles.tabLabel,
+            { color: isActive ? activeColor : inactiveColor },
+            isActive && styles.tabLabelActive,
+          ]}
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+        {isActive && (
+          <View style={[styles.activeIndicator, { backgroundColor: activeColor }]} />
+        )}
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
+
+// Custom Tab Bar
+interface CustomTabBarProps {
+  currentIndex: number;
+  onTabPress: (index: number) => void;
+}
+
+const CustomTabBar: React.FC<CustomTabBarProps> = ({ currentIndex, onTabPress }) => {
+  const { t } = useTranslation();
+  const { theme } = useAppTheme();
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      style={[
+        styles.tabBar,
+        {
+          backgroundColor: theme.colors.tabBar,
+          borderTopColor: theme.colors.divider,
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 8,
+        },
+      ]}
+    >
+      {TABS.map((tab, index) => (
+        <TabBarItem
+          key={tab.key}
+          tab={tab}
+          index={index}
+          isActive={currentIndex === index}
+          onPress={() => onTabPress(index)}
+          activeColor={theme.colors.tabBarActive}
+          inactiveColor={theme.colors.tabBarInactive}
+          label={t(tab.labelKey) || tab.key}
+        />
+      ))}
+    </View>
+  );
+};
+
+// Swipe Indicator
+interface SwipeIndicatorProps {
+  currentIndex: number;
+  totalTabs: number;
+}
+
+const SwipeIndicator: React.FC<SwipeIndicatorProps> = ({ currentIndex, totalTabs }) => {
+  const { theme } = useAppTheme();
+
+  return (
+    <View style={styles.swipeIndicatorContainer}>
+      {Array.from({ length: totalTabs }).map((_, index) => (
+        <View
+          key={index}
+          style={[
+            styles.swipeIndicatorDot,
+            {
+              backgroundColor:
+                index === currentIndex
+                  ? theme.colors.primary
+                  : theme.colors.onSurfaceVariant + '40',
+              width: index === currentIndex ? 16 : 6,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
+
+// Main Tab Navigator
+const MainTabNavigator: React.FC = () => {
+  const { theme } = useAppTheme();
+  const pagerRef = useRef<PagerView>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handlePageSelected = useCallback((event: PagerViewOnPageSelectedEvent) => {
+    setCurrentIndex(event.nativeEvent.position);
+  }, []);
+
+  const handleTabPress = useCallback((index: number) => {
+    pagerRef.current?.setPage(index);
+    setCurrentIndex(index);
+  }, []);
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Swipe Indicator (Üstte) */}
+      <SwipeIndicator currentIndex={currentIndex} totalTabs={TABS.length} />
+
+      {/* Pager View - Swipeable Screens */}
+      <PagerView
+        ref={pagerRef}
+        style={styles.pagerView}
+        initialPage={0}
+        onPageSelected={handlePageSelected}
+        overdrag={true}
+        overScrollMode="always"
+      >
+        {TABS.map((tab, index) => (
+          <View key={tab.key} style={styles.page}>
+            <tab.component />
+          </View>
+        ))}
+      </PagerView>
+
+      {/* Bottom Tab Bar */}
+      <CustomTabBar currentIndex={currentIndex} onTabPress={handleTabPress} />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  pagerView: {
+    flex: 1,
+  },
+  page: {
+    flex: 1,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 8,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabItemInner: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    position: 'relative',
+  },
+  tabLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  tabLabelActive: {
+    fontWeight: '600',
+  },
+  activeIndicator: {
+    position: 'absolute',
+    top: -8,
+    width: 24,
+    height: 3,
+    borderRadius: 1.5,
+  },
+  swipeIndicatorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+    gap: 4,
+  },
+  swipeIndicatorDot: {
+    height: 4,
+    borderRadius: 2,
+  },
+});
 
 export default MainTabNavigator;
