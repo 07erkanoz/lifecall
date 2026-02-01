@@ -615,24 +615,35 @@ interface CalendarSettings {
 
 ---
 
-## Faz 9: Gelişmiş Özellikler 📝 BEKLEMEDE
+## Faz 9: Gelişmiş Özellikler ✅ BÜYÜK ÖLÇÜDE TAMAMLANDI
 
-### 9.1 Arama Kaydı
+### 9.1 Arama Kaydı 📝 BEKLEMEDE
 - [ ] Arama kaydetme
 - [ ] Kayıt listesi
 - [ ] Kayıt oynatma
 
-### 9.2 Engelleme
-- [ ] Numara engelleme
-- [ ] Engel listesi yönetimi
-- [ ] Spam tespit
+### 9.2 Engelleme ✅ TAMAMLANDI
+- [x] Numara engelleme (BlockingModule)
+- [x] Engelli numara listesi yönetimi
+- [x] Bilinmeyen arayanları otomatik engelleme
+- [x] Gizli numaraları otomatik engelleme
+- [x] Spam tespit ve uyarı sistemi
+- [x] Ücretsiz spam API entegrasyonu
+- [x] Kullanıcı spam bildirimi (Supabase)
 
-### 9.3 Yedekleme
+### 9.3 Arama Etkileşimleri ✅ TAMAMLANDI
+- [x] Yakınlık sensörü ile ekran kontrolü
+- [x] Telefonu çevirerek reddetme (accelerometer)
+- [x] Yakınlık sensörü ile cevaplama
+- [x] Ses düğmesi desteği altyapısı
+- [x] Titreşim ayarları (gelen/cevaplanan/kapanan)
+
+### 9.4 Yedekleme 📝 BEKLEMEDE
 - [ ] Kişi yedekleme
 - [ ] Ayar yedekleme
 - [ ] Bulut senkronizasyonu
 
-### 9.4 Widget'lar ✅
+### 9.5 Widget'lar ✅
 
 ---
 
@@ -719,12 +730,21 @@ CallHub/
 │       ├── MainApplication.java
 │       ├── IncomingCallActivity.java
 │       ├── CallConnectionService.java
+│       ├── BlockingModule.java           (Numara engelleme)
+│       ├── VoLTEModule.java              (HD Voice tespit)
+│       ├── RingtoneModule.java           (Zil sesi yönetimi)
+│       ├── NavigationBarModule.java      (Faz 9 - Navigation bar)
+│       ├── CallInteractionModule.java    (Faz 9 - Sensör etkileşimleri)
+│       ├── utils/
+│       │   └── CallSettingsHelper.java   (Faz 9 - Native ayar okuma)
 │       ├── receivers/
 │       │   ├── PhoneStateReceiver.java
 │       │   ├── BootReceiver.java
-│       │   └── CalendarReminderReceiver.java (Faz 6)
+│       │   ├── CalendarReminderReceiver.java (Faz 6)
+│       │   └── CalendarSnoozeReceiver.java   (Faz 6)
 │       └── services/
 │           ├── IncomingCallService.java
+│           ├── LifeCallInCallService.java    (Faz 9 - Engelleme entegrasyonu)
 │           └── CalendarNotificationService.java (Faz 6)
 ├── src/
 │   ├── components/
@@ -732,6 +752,8 @@ CallHub/
 │   │   ├── FloatingCallBubble.tsx
 │   │   ├── FloatingCallNotification.tsx
 │   │   ├── AuthPrompt.tsx               (Faz 10)
+│   │   ├── SpamWarningBadge.tsx         (Faz 9 - Spam uyarısı)
+│   │   ├── SpamReportModal.tsx          (Faz 9 - Spam bildirimi)
 │   │   ├── calendar/                    (Faz 6)
 │   │   │   ├── CalendarView.tsx
 │   │   │   ├── DayView.tsx
@@ -755,6 +777,9 @@ CallHub/
 │   ├── native/
 │   │   ├── CallModule.ts
 │   │   ├── CalendarModule.ts            (Faz 6)
+│   │   ├── VoLTEModule.ts
+│   │   ├── NavigationBarModule.ts       (Faz 9 - Navigation bar kontrolü)
+│   │   ├── CallInteractionModule.ts     (Faz 9 - Sensör etkileşimleri)
 │   │   └── index.ts
 │   ├── navigation/
 │   │   ├── MainTabNavigator.tsx
@@ -793,6 +818,11 @@ CallHub/
 │   │   ├── CallStateManager.ts
 │   │   ├── defaultAppService.ts
 │   │   ├── permissionsService.ts
+│   │   ├── ProximityService.ts          (Faz 9 - Yakınlık sensörü)
+│   │   ├── SpamService.ts               (Faz 9 - Spam koruması)
+│   │   ├── CallSettingsService.ts       (Faz 9 - Merkezi ayar yönetimi)
+│   │   ├── BackupService.ts
+│   │   ├── contactsService.ts
 │   │   ├── calendar/                    (Faz 6)
 │   │   │   ├── GoogleCalendarService.ts
 │   │   │   ├── CalendarImportExportService.ts
@@ -833,6 +863,47 @@ CallHub/
 3. Kurulum sihirbazı (marka bazlı)
 4. Overlay izin kontrolü
 5. NativeEventEmitter entegrasyonu
+20. **Google Sign-In Entegrasyonu**
+    - AuthContext.tsx Google Sign-In desteği
+    - @react-native-google-signin/google-signin entegrasyonu
+    - Supabase signInWithIdToken bağlantısı
+    - Çift platform sign out (Google + Supabase)
+21. **Proximity Sensör Sistemi**
+    - ProximityService.ts (react-native-incall-manager)
+    - Arama sırasında ekran kontrolü
+    - Hoparlör modunda devre dışı kalma
+    - SettingsCallsScreen proximity ayarı
+22. **Gelişmiş Spam Koruması**
+    - SpamService.ts (çoklu kaynak spam kontrolü)
+    - Ücretsiz API desteği (SpamCalls.net, Tellows)
+    - Türk numara prefix analizi
+    - 24 saat önbellek sistemi
+    - Kullanıcı spam bildirimi (Supabase)
+    - SpamWarningBadge bileşeni
+    - SpamReportModal bileşeni
+    - IncomingCallScreen spam entegrasyonu
+23. **CallSettingsService**
+    - Merkezi ayar yönetimi servisi
+    - Titreşim kontrolleri (gelen/cevaplanan/kapanan)
+    - Tuş sesi ve titreşim ayarları
+    - Ayar değişikliklerinde otomatik yeniden yükleme
+24. **Android Navigation Bar Koruması**
+    - NavigationBarModule.java (native modül)
+    - NavigationBarModule.ts (TypeScript wrapper)
+    - Tema değişikliğinde navigation bar renk senkronizasyonu
+    - Status bar ve navigation bar birlikte kontrol
+25. **Gelişmiş Arama Etkileşim Sistemi**
+    - CallSettingsHelper.java (AsyncStorage'dan native okuma)
+    - LifeCallInCallService güncellemesi
+      - Bilinmeyen arayanları otomatik engelleme
+      - Gizli numaraları otomatik engelleme
+      - Rehber kontrolü entegrasyonu
+    - CallInteractionModule.java
+      - Accelerometer ile çevirerek reddetme
+      - Yakınlık sensörü ile cevaplama
+      - Ses düğmesi desteği altyapısı
+    - CallInteractionModule.ts (TypeScript wrapper)
+    - IncomingCallScreen etkileşim entegrasyonu
 6. **Faz 6 Takvim Modülü Temel Ekranları:**
    - calendar.ts (tipler ve sabitler)
    - calendarSlice.ts (Redux state yönetimi)
@@ -921,7 +992,11 @@ CallHub/
 - Faz 6: Takvim Modülü ✅ BÜYÜK ÖLÇÜDE TAMAMLANDI
 - Faz 7: Notlar Modülü ✅ BÜYÜK ÖLÇÜDE TAMAMLANDI
 - Faz 8: Ayarlar ve Mağaza ✅ TAMAMLANDI
-- Faz 9: Widget'lar ✅ TAMAMLANDI
+- Faz 9: Gelişmiş Özellikler ✅ BÜYÜK ÖLÇÜDE TAMAMLANDI
+  - Engelleme sistemi ✅
+  - Spam koruması ✅
+  - Arama etkileşimleri ✅
+  - Widget'lar ✅
 - Faz 10: Lazy Authentication ✅ TAMAMLANDI
 
 **Sonraki Adımlar:**
