@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppTheme } from '../../theme';
+import { proximityService } from '../../services';
 
 // AsyncStorage keys
 const CALL_SETTINGS_KEY = '@lifecall_call_settings';
@@ -48,6 +49,9 @@ const DEFAULT_CALL_SETTINGS = {
   vibrationEnabled: true,
   vibrationOnAnswer: false,
   vibrationOnHangup: false,
+
+  // Proximity Sensor - Arama sırasında ekran kontrolü
+  proximityScreenOff: true, // Arama sırasında kulağa yaklaşınca ekran kapansın
 
   // Cevaplama yöntemleri
   answerWithButton: true,
@@ -134,7 +138,10 @@ const SettingsCallsScreen: React.FC = () => {
     try {
       const savedSettings = await AsyncStorage.getItem(CALL_SETTINGS_KEY);
       if (savedSettings) {
-        setSettings({ ...DEFAULT_CALL_SETTINGS, ...JSON.parse(savedSettings) });
+        const parsed = { ...DEFAULT_CALL_SETTINGS, ...JSON.parse(savedSettings) };
+        setSettings(parsed);
+        // ProximityService ile senkronize et
+        proximityService.setProximityEnabled(parsed.proximityScreenOff);
       }
     } catch (error) {
       console.error('Arama ayarları yüklenemedi:', error);
@@ -372,6 +379,26 @@ const SettingsCallsScreen: React.FC = () => {
         icon="phone-hangup-outline"
         value={settings.vibrationOnHangup}
         onToggle={(v) => updateSetting('vibrationOnHangup', v)}
+      />
+
+      <Divider style={styles.divider} />
+
+      {/* Ekran Kontrolü */}
+      <Text variant="titleSmall" style={[styles.sectionTitle, { color: theme.colors.primary }]}>
+        Ekran Kontrolü
+      </Text>
+
+      <SettingsToggleItem
+        title="Yakınlık Sensörü"
+        description="Arama sırasında telefon kulağa yaklaşınca ekranı kapat"
+        icon="cellphone-sound"
+        iconColor="#00BCD4"
+        value={settings.proximityScreenOff}
+        onToggle={(v) => {
+          updateSetting('proximityScreenOff', v);
+          // ProximityService'i güncelle
+          proximityService.setProximityEnabled(v);
+        }}
       />
 
       <Divider style={styles.divider} />

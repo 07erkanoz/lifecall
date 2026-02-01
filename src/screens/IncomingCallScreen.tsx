@@ -30,7 +30,7 @@ import { Avatar, CallBackground, AnswerButtons } from '../components';
 import { RootStackScreenProps } from '../navigation/types';
 import { Contact } from '../types';
 import ContactRepository from '../database/repositories/ContactRepository';
-import { defaultAppService } from '../services';
+import { defaultAppService, proximityService } from '../services';
 import VoLTEModule from '../native/VoLTEModule';
 import { getCountryFromPhoneNumber } from '../data/countryCodes';
 
@@ -146,8 +146,12 @@ const IncomingCallScreen: React.FC<Props> = ({ navigation, route }) => {
     };
   }, [activeTheme, pulseAnim, glowAnim, floatAnim]);
 
-  // Titreşim
+  // Titreşim ve Zil Sesi
   useEffect(() => {
+    // Zil sesini başlat
+    proximityService.startRingtone();
+
+    // Titreşim
     const interval = setInterval(() => {
       Vibration.vibrate([0, 500, 200, 500]);
     }, 2000);
@@ -155,6 +159,8 @@ const IncomingCallScreen: React.FC<Props> = ({ navigation, route }) => {
     return () => {
       clearInterval(interval);
       Vibration.cancel();
+      // Zil sesini durdur
+      proximityService.stopRingtone();
     };
   }, []);
 

@@ -16,3 +16,6 @@ export { default as callStateManager } from './CallStateManager';
 
 export * from './BackupService';
 export { default as backupService } from './BackupService';
+
+export * from './ProximityService';
+export { default as proximityService } from './ProximityService';

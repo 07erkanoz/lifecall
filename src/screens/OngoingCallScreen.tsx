@@ -33,7 +33,7 @@ import { useAppTheme } from '../theme';
 import { Avatar } from '../components';
 import { RootStackScreenProps } from '../navigation/types';
 import callStateManager, { ActiveCall } from '../services/CallStateManager';
-import { defaultAppService } from '../services';
+import { defaultAppService, proximityService } from '../services';
 import VoLTEModule, { HdAudioEvent } from '../native/VoLTEModule';
 import { getCountryFromPhoneNumber } from '../data/countryCodes';
 
@@ -100,6 +100,17 @@ const OngoingCallScreen: React.FC<Props> = ({ navigation, route }) => {
   // Animasyonlar
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const statusOpacity = useRef(new Animated.Value(1)).current;
+
+  // Proximity sensor - Arama başladığında ekran kontrolü
+  useEffect(() => {
+    // Arama başladığında proximity sensor'ü başlat
+    proximityService.startCallMode();
+
+    return () => {
+      // Ekran kapandığında proximity sensor'ü durdur
+      proximityService.stopCallMode();
+    };
+  }, []);
 
   // VoLTE/HD durumunu al ve dinle
   useEffect(() => {
@@ -250,8 +261,8 @@ const OngoingCallScreen: React.FC<Props> = ({ navigation, route }) => {
     const newState = callStateManager.toggleMute();
     setIsMuted(newState);
     try {
-      // Native modüle de bildir
-      // await defaultAppService.setMuted(newState);
+      // ProximityService ile mikrofon durumunu güncelle
+      proximityService.setMicrophoneMute(newState);
     } catch (error) {
       console.error('Sessiz değiştirilemedi:', error);
     }
@@ -262,8 +273,9 @@ const OngoingCallScreen: React.FC<Props> = ({ navigation, route }) => {
     const newState = callStateManager.toggleSpeaker();
     setIsSpeakerOn(newState);
     try {
-      // Native modüle de bildir
-      // await defaultAppService.setSpeaker(newState);
+      // ProximityService ile hoparlör durumunu güncelle
+      // Hoparlör açıkken proximity sensor devre dışı kalmalı
+      proximityService.setSpeakerphoneOn(newState);
     } catch (error) {
       console.error('Hoparlör değiştirilemedi:', error);
     }
